@@ -2,8 +2,10 @@ if (window.app && window.app.$destroy) window.app.$destroy();
 
 document.body.classList.add('bg-slate-200');
 document.body.innerHTML = `
-<div id="app" class="w-full h-full ">
-    <div v-if="loading" class="py-3 px-5 m-3 rounded-lg bg-white flex items-center justify-center">Đang tải</div>
+<div id="app" class="w-full h-full overflow-auto	">
+    <div v-if="loading" class="py-3 px-5 m-3 rounded-lg bg-white flex items-center justify-center">
+        Loading...
+    </div>
     <div v-else>
         <div class="py-3 px-5 m-3 rounded-lg bg-white" v-for="(x,i) in words">
             <div v-html="x.w"></div>
