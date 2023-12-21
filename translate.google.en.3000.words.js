@@ -128,7 +128,8 @@
     function getWords() {
         var url = `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.json`;
         fetch(url).then(x => x.json()).then(words => {
-            console.log(words);
+           // console.log(words);
+           localStorage.setItem(key_arr, JSON.stringify(words));
         })
     }
 
