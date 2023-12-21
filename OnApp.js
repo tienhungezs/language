@@ -37,6 +37,9 @@ function update(){
 }
 
 function getGitWords(fn) {
+
+    var url= 'https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.json'
+
     app21.prom('DOWNLOAD_URL', url).then(rs => {
 
         var contentType = rs.data.contentType.split(';')[0];
