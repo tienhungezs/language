@@ -65,8 +65,7 @@ var app = new Vue({
     data: data,
     mounted() {
         app21.prom('TEXT', {
-            name: storeKey,
-            content: JSON.stringify(data.hisItems)
+            name: storeKey
         }).then(rs => {
             try {
                 var arr = JSON.parse(rs.data);
