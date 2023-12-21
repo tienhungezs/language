@@ -25,11 +25,11 @@ var data = {
 
 };
 
-const storeName = 'Words_En';
+const storeKey = 'Words_En';
 
 function update(){
     app21.prom('TEXT', {
-        name: storeName,
+        name: storeKey,
         content: JSON.stringify(data.words)
     }).then(rs => {
         console.log('Đã lưu')
@@ -62,7 +62,7 @@ var app = new Vue({
     data: data,
     mounted() {
         app21.prom('TEXT', {
-            name: storeName,
+            name: storeKey,
             content: JSON.stringify(data.hisItems)
         }).then(rs => {
             try {
