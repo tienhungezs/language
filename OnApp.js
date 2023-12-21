@@ -24,7 +24,7 @@ var data = {
     loading: true
 
 };
-
+data.words.length =0;
 const storeKey = 'Words_En';
 
 function update(){
