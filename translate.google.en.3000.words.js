@@ -125,13 +125,54 @@
     }
 
 
-    function getWords() {
+    function getWords(fn) {
         var url = `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.json`;
         fetch(url).then(x => x.json()).then(words => {
-           // console.log(words);
-           localStorage.setItem(key_arr, JSON.stringify(words));
+            // console.log(words);
+            localStorage.setItem(key_arr, JSON.stringify(words));
+            fn(words);
         })
     }
+
+
+    function run() {
+        var arr = [];
+
+        var store = localStorage.getItem(key_arr);
+
+
+        function onword() {
+            var w= null;
+            arr.every(_w=>{
+                if(!_w.voice){
+                    w= _w;
+                }
+                return w===null;
+            })
+            if(w){
+                findWord(w.w, 'en', 'vi');
+            }
+        }
+
+        try {
+
+            arr = JSON.parse(store);
+            if (!Array.isArray(arr)) arr = [];
+
+        } catch (e) { }
+
+        if (!arr.length) {
+            getWords((words) => {
+                arr = words;
+                onword();
+            })
+        } else {
+            onword();
+        }
+
+    }
+
+    run();
 
     // findWord('abandon', 'en', 'vi');
 
