@@ -7,7 +7,7 @@ const fixedFull = 'top-0 left-0 bottom-0 right-0 fixed';
 const fixedRight = 'top-0  bottom-0 right-0 fixed';
 const rowLg = 'border-b-[1px] border-salete-100 last:border-0  flex items-center w-full min-h-[88px]';
 const rowLg_lb = 'w-[75px] text-[#999] p-5';
-const rowLg_lbBlock= `w-full text-[#999]`;
+const rowLg_lbBlock = `w-full text-[#999]`;
 const rowLg_Action = `
 ml-[auto] my-[4px] relative min-h-[76px] h-full w-[88px] 
 border-l-[1px] border-slate-100 flex items-center justify-center
@@ -31,7 +31,7 @@ after:content-[''] after:w-[10px] after:h-[32px]
 after:border-slate-400 after:border-[1px] after:border-l-[0] after:ml-[10px]
 group-active:after:border-white
 `;
-const textAction =`
+const textAction = `
 underline  underline-offset-4 active:text-blue-500 select-none 
 `;
 
@@ -54,12 +54,20 @@ document.body.innerHTML = `
     </div>
 
     <!--module active-->
-    <div class="h-[calc(100vh_-_48px)] w-full  overflow-auto" v-for="(m) in modulesActive()">
-        <div class="py-3 px-5 m-3 rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
-             v-for="(x,i) in m.data"
-             v-on:click="m.setActive && m.setActive(x)"
-             v-bind:data-active="x == m.itemActive">
-            <div v-html="m.getHtml ? m.getHtml(x): ''"></div>
+    <div class="h-[calc(100vh_-_48px)] w-full  overflow-auto relative" 
+         v-for="(m) in modulesActive()"
+         v-on:scroll="scrollItem($event)">
+        
+        <div v-bind:class="'w-full h-[' + (m.data.length * m.itemHeight) + 'px]'">
+            <div v-for="(x,i) in m.data" 
+                v-if=" scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh()"
+                v-bind:class="'absolute p-3 pb-0 last:pb-3 w-full h-['+ m.itemHeight   +'px] top-[' + (i* m.itemHeight)+'px]'">
+                <div class="py-3 px-5  rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
+                        v-on:click="m.setActive && m.setActive(x)"
+                        v-bind:data-active="x == m.itemActive">
+                    <div v-html="m.getHtml ? m.getHtml(x): ''"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -116,7 +124,7 @@ var data = {
     modules: [
         {
             text: 'Top 3000 words',
-            name:'top1000en',
+            name: 'top1000en',
             loading: true,
             data: [],
             storeKey: 'top1000en',
@@ -179,9 +187,10 @@ var data = {
             },
             setActive(x) {
                 data.wordActive = x;
-                this.itemActive= x;
+                this.itemActive = x;
             },
-            itemActive: null
+            itemActive: null,
+            itemHeight: 62
 
         },
         {
@@ -190,7 +199,9 @@ var data = {
             data: [],
             onLoad() {
 
-            }
+            },
+            itemActive: null,
+            itemHeight: 62
         },
 
     ],
@@ -208,10 +219,7 @@ var data = {
         return this.modules.filter(m => m.active);
     },
     menuShow: false,
-    wordActive: {
-        w: 'hi',
-        voice: 'hi'
-    },
+    wordActive: null,
     wordProps: [
         {
             name: 'w',
@@ -223,29 +231,29 @@ var data = {
         {
 
             name: 'voice',
-            qrInput:true
+            qrInput: true
         },
         {
             name: 'audio',
-            qrInput:true
+            qrInput: true
         },
         {
 
             name: 'meaning',
-            qrInput:true,
+            qrInput: true,
             textInput: true,
-            onClick(){
+            onClick() {
                 data.wordPropEdit = this;
             }
         },
         {
 
             name: 'top_phrases',
-            
+
         },
         {
             name: 'top_sentences',
-           
+
         }
     ],
     wordPropEdit: null,
@@ -257,8 +265,32 @@ var data = {
 
         })
     },
-    set(a,b,c){
-        Vue.set(a,b,c)
+    set(a, b, c) {
+        Vue.set(a, b, c)
+    },
+    scrollY1: 0,
+    scrollY2: window.innerHeight - 48,
+    scrollItem(evt) {
+        var x = evt.target.scrollTop;
+        var y = x + evt.target.clientHeight;
+        this.scrollY1 = x;
+        this.scrollY2 = y;
+    },
+    getModuleItems(m) {
+        var h = m.itemHeight || 62;
+        var a = this.scrollY1 - window.innerHeight;
+        var b = this.scrollY2 + window.innerHeight;
+        //console.log([a, b]);
+        return m.data.filter((x, i) => {
+            if (a <= i * h && i * h <= b) {
+                console.log(i);
+                return true;
+            };
+            return false;
+        })
+    },
+    wh(){
+        return window.innerHeight;
     }
 
 };
