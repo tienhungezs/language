@@ -9,7 +9,7 @@ const rowLg = 'border-b-[1px] border-salete-100 last:border-0  flex items-center
 const rowLg_lb = 'w-[75px] text-[#999] p-5';
 const rowLg_lbBlock = `w-full text-[#999]`;
 const rowLg_Action = `
-ml-[auto] my-[4px] relative min-h-[76px] h-full w-[88px] 
+ml-[auto] my-[4px] relative min-h-[76px] h-full w-[88px] flex-[0_0_88px]
 border-l-[1px] border-slate-100 flex items-center justify-center
 group active:bg-blue-500 active:text-white
 `;
@@ -89,9 +89,9 @@ document.body.innerHTML = `
                         group"
                  v-for="(p) in wordProps" 
                  v-bind:data-head="p.head" >
-                <div class="p-5" v-on:click="p.onClick && p.onClick()">
+                <div class="p-5 grow flex flex-col" v-on:click="p.onClick && p.onClick()">
                     <div v-if="!p.head" class="${rowLg_lbBlock} text-[12px]">{{p.text || p.name}} {{p.textInput ? '[_]':''}}</div>
-                    <div v-bind:data-head="p.head"  class="data-[head=true]:text-4xl " v-html="p.getValue ? p.getValue(w): w[p.name]"></div>
+                    <div v-bind:data-head="p.head"  class="data-[head=true]:text-4xl flex break-all" v-html="p.getValue ? p.getValue(w): w[p.name]"></div>
                 </div>
                 
                 
