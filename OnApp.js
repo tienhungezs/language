@@ -144,8 +144,6 @@ var data = {
                                 var contentType = rs.data.contentType.split(';')[0];
                                 var s = rs.data.text;
 
-                                //console.log('DOWNLOAD_URL', url, s);
-
                                 try {
                                     var arr = JSON.parse(s);
                                     if (Array.isArray(arr)) {
@@ -173,7 +171,7 @@ var data = {
                     name: this.storeKey,
                     content: JSON.stringify(this.data)
                 }).then(rs => {
-                    console.log('Đã lưu')
+                    console.log('Da_luu')
                 })
             },
             getHtml(x) {
@@ -254,10 +252,7 @@ var data = {
     wordPropEditValue: null,
     qrOpen(fn) {
         app21.prom('OPEN_QRCODE').then(rs => {
-            // console.log(rs.data);
             var qrCode = rs.data;
-           
-           
             fn && fn(qrCode)
 
         })
