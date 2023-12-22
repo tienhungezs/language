@@ -95,7 +95,7 @@ document.body.innerHTML = `
                 </div>
                 
                 
-                <div v-if="p.qrInput" v-on:click=" qrOpen(v=> set(wordActive,p.name, v))" class="${rowLg_Action}  ${action_qr}"></div>
+                <div v-if="p.qrInput" v-on:click=" qrOpen(v=> set(wordActive,p.name, v, true))" class="${rowLg_Action}  ${action_qr}"></div>
 
                 <div v-if="p.close" v-on:click="p.close()" class="${rowLg_Action} ${action_x}"></div>
             </div>
@@ -111,7 +111,7 @@ document.body.innerHTML = `
                 </textarea>
                 <div class="flex justify-between">
                     <div class="${textAction}" v-on:click="wordPropEdit = null; wordPropEditValue= null">Cancel</div>
-                    <div class="${textAction}" v-on:click="wordPropEdit = null;set(wordActive, e.name, wordPropEditValue);wordPropEditValue=null">OK</div>
+                    <div class="${textAction}" v-on:click="wordPropEdit = null;set(wordActive, e.name, wordPropEditValue);wordPropEditValue=null; store()">OK</div>
                 </div>
             </div>
         </div>
@@ -265,8 +265,9 @@ var data = {
 
         })
     },
-    set(a, b, c) {
-        Vue.set(a, b, c)
+    set(a, b, c, upd) {
+        Vue.set(a, b, c);
+        if(upd) this.store();
     },
     scrollY1: 0,
     scrollY2: window.innerHeight - 48,
@@ -280,7 +281,6 @@ var data = {
         var h = m.itemHeight || 62;
         var a = this.scrollY1 - window.innerHeight;
         var b = this.scrollY2 + window.innerHeight;
-        //console.log([a, b]);
         return m.data.filter((x, i) => {
             if (a <= i * h && i * h <= b) {
                 console.log(i);
@@ -291,6 +291,13 @@ var data = {
     },
     wh(){
         return window.innerHeight;
+    },
+    store(){
+        this.modules.forEach(m=>{
+            if(m.active){
+                m.store && m.store();
+            }
+        })
     }
 
 };
