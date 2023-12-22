@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script>
+        var app21 = {
+            prom(sub_cmd, params) {
+                return new Promise((resolve) => {
+
+                    switch (sub_cmd) {
+                        case 'OPEN_QRCODE':
+                            setTimeout(function () {
+                                resolve({
+                                    data: 'qrCode simulate'
+                                });
+                            }, 600)
+                            break;
+                        case 'DOWNLOAD_URL':
+                            var url = params;
+
+                            var contentType = '';
+                            fetch(url).then(rs => {
+                                rs.headers.forEach(h => {
+                                    if (h == 'content-type') {
+                                        contentType = rs.headers[h];
+                                    }
+                                })
+                                return rs.text()
+
+                            }).then(text => {
+                                resolve({
+                                    data: {
+                                        contentType: contentType,
+                                        text: text
+                                    }
+                                })
+                            })
+                            break;
+                        default:
+                            setTimeout(function () {
+                                resolve(null);
+                            }, 100)
+                            break;
+                    }
+
+
+                })
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <!--
+        simulate app on web, run by iis
+    -->
+    <script src="OnApp.js"></script>
+</body>
+
+</html
