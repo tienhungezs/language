@@ -35,6 +35,11 @@ const textAction = `
 underline  underline-offset-4 active:text-blue-500 select-none 
 `;
 
+const svg_close = `
+<svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+</svg>
+`;
 
 
 document.body.innerHTML = `
@@ -97,7 +102,9 @@ document.body.innerHTML = `
                 
                 <div v-if="p.qrInput" v-on:click=" qrOpen(v=> set(wordActive,p.name, v, true))" class="${rowLg_Action}  ${action_qr}"></div>
 
-                <div v-if="p.close" v-on:click="p.close()" class="${rowLg_Action} ${action_x}"></div>
+                <div v-if="p.close" v-on:click="p.close()" class="${rowLg_Action}">
+                    ${svg_close}
+                </div>
             </div>
 
             <div class="absolute bottom-0 right-0 left-0 bg-white border-t-[1px] p-5 bg-slate-100" 
@@ -267,7 +274,7 @@ var data = {
     },
     set(a, b, c, upd) {
         Vue.set(a, b, c);
-        if(upd) this.store();
+        if (upd) this.store();
     },
     scrollY1: 0,
     scrollY2: window.innerHeight - 48,
@@ -289,12 +296,12 @@ var data = {
             return false;
         })
     },
-    wh(){
+    wh() {
         return window.innerHeight;
     },
-    store(){
-        this.modules.forEach(m=>{
-            if(m.active){
+    store() {
+        this.modules.forEach(m => {
+            if (m.active) {
                 m.store && m.store();
             }
         })
