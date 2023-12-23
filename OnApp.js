@@ -41,6 +41,9 @@ const svg_close = `
 </svg>
 `;
 
+const pending = `
+<div class="h-[24px] rounded-lg w-full u1 bg-slate-200 animate-pulse"></div>
+`;
 
 document.body.innerHTML = `
 <div id="app" class="w-full h-full  overflow-auto">
@@ -88,7 +91,7 @@ document.body.innerHTML = `
 
     <!-- word detail -->
     <div v-if="wordActive">
-        <div class="${fixedRight} w-[80%] bg-white drop-shadow-2xl" v-for="w in [wordActive]">
+        <div class="${fixedRight} w-[80%] bg-white drop-shadow-2xl overflow-auto" v-for="w in [wordActive]">
             <div class="${rowLg} data-[head=true]:bg-slate-100 
                         data-[head=true]:text-blank data-[head=true]:font-bold data-[head=true]:border-slate-200 data-[head=true]:border-b-[2px]
                         group"
@@ -97,11 +100,11 @@ document.body.innerHTML = `
                 <div class="p-5 grow flex flex-col" v-on:click="p.onClick && p.onClick()">
                     <div v-if="!p.head" class="${rowLg_lbBlock} text-[12px]">{{p.text || p.name}} {{p.textInput ? '[_]':''}}</div>
                     <div v-bind:data-head="p.head"  class="data-[head=true]:text-4xl flex break-all" v-html="p.getValue ? p.getValue(w): w[p.name]"></div>
+                    <div v-if="p.render" class="w-full mt-3 max-h-[30vh] overflow-auto" v-html="p.render()"></div>
                 </div>
                 
                 
-                <div v-if="p.qrInput" v-on:click=" qrOpen(v=> set(wordActive,p.name, v, true))" class="${rowLg_Action}  ${action_qr}"></div>
-
+                
                 <div v-if="p.close" v-on:click="p.close()" class="${rowLg_Action}">
                     ${svg_close}
                 </div>
@@ -127,12 +130,11 @@ document.body.innerHTML = `
 `;
 
 
-function PlaySound(t)
-{
-    var e=document.createElement("audio");
-    e.setAttribute("src",t),
-    
-    document.body.appendChild(e);
+function PlaySound(t) {
+    var e = document.createElement("audio");
+    e.setAttribute("src", t),
+
+        document.body.appendChild(e);
     e.play();
 
 }
@@ -169,7 +171,6 @@ var data = {
 
                                 var contentType = rs.data.contentType.split(';')[0];
                                 var s = rs.data.text;
-
                                 try {
                                     var arr = JSON.parse(s);
                                     if (Array.isArray(arr)) {
@@ -269,11 +270,11 @@ var data = {
                 }
             },
             getHtml(x) {
-               
+
                 return x.phrase;
             },
             setActive(x) {
-                
+
                 this.itemActive = x;
             },
             itemActive: null,
@@ -293,6 +294,21 @@ var data = {
             })
         }
         return this.modules.filter(m => m.active);
+    },
+    moduleLoad(mName) {
+        this.modules.forEach(m => {
+            if (m.name == mName) m.onLoad();
+        })
+    },
+    moduleData(mName, fn) {
+        this.modules.every(m => {
+            if (m.name == mName) {
+                fn(m.loading, m.data);
+                return false;
+            }
+            return true;
+        })
+
     },
     menuShow: false,
     wordActive: null,
@@ -316,7 +332,7 @@ var data = {
         {
 
             name: 'meaning',
-            qrInput: true,
+
             textInput: true,
             onClick() {
                 data.wordPropEdit = this;
@@ -325,11 +341,36 @@ var data = {
         {
 
             name: 'top_phrases',
+            render() {
+                var arr = [];
+                var any = false;
+                if (data.wordActive) {
+                    data.moduleData('top1000phrases_en', (loading, _data) => {
+                        any = !loading;
+                        arr = _data.filter(ph => {
+                            return `${ph.phrase}`.indexOf(data.wordActive.w)>-1;
+                        })
+                    })
+                }
 
+
+                
+
+                if (arr.length > 0) {
+                    return arr.map(x => `<div class="p-1">${x.phrase}</div>`).join('')
+                }
+
+                if (any) {
+                    return '(none)';
+                }
+                return pending;
+            }
         },
         {
             name: 'top_sentences',
-
+            render() {
+                return pending;
+            }
         }
     ],
     wordPropEdit: null,
@@ -389,5 +430,12 @@ var app = new Vue({
                 m.onLoad();
             }
         })
+    },
+    watch: {
+        wordActive(w) {
+            if (w) {
+                data.moduleLoad('top1000phrases_en');
+            }
+        }
     }
 })
