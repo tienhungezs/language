@@ -217,11 +217,7 @@ var data = {
             name: 'top1000phrases_en',
             loading: true,
             data: [
-                // {
-                //     phrase: '',
-                //     category: '',
-                //     audio: ''
-                // }
+                
             ],
             storeKey: 'top1000phrases_en',
             onLoad() {
@@ -322,12 +318,10 @@ var data = {
         },
         {
 
-            name: 'voice',
-            //qrInput: true
+            name: 'voice'
         },
         {
-            name: 'audio',
-            //qrInput: true
+            name: 'audio'
         },
         {
 
