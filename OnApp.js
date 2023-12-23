@@ -126,15 +126,26 @@ document.body.innerHTML = `
 </div>
 `;
 
+
+function PlaySound(t)
+{
+    var e=document.createElement("audio");
+    e.setAttribute("src",t),
+    
+    document.body.appendChild(e);
+    e.play();
+
+}
+
 var data = {
 
     modules: [
         {
             text: 'Top 3000 words',
-            name: 'top1000en',
+            name: 'top3000word_en',
             loading: true,
             data: [],
-            storeKey: 'top1000en',
+            storeKey: 'top3000word_en',
             onLoad() {
                 var t = this;
 
@@ -202,13 +213,71 @@ var data = {
         },
         {
             text: 'Top 1000 english-phrases',
+            name: 'top1000phrases_en',
             loading: true,
-            data: [],
+            data: [
+                // {
+                //     phrase: '',
+                //     category: '',
+                //     audio: ''
+                // }
+            ],
+            storeKey: 'top1000phrases_en',
             onLoad() {
+                var t = this;
+                console.log('load', t.storeKey);
+                if (t.loading) {
+                    app21.prom('TEXT', {
+                        name: t.storeKey
+                    }).then(rs => {
+                        try {
+                            var arr = JSON.parse(rs.data);
+                            if (Array.isArray(arr)) {
+                                t.data = arr;
+                            }
+                        } catch {
 
+                        }
+
+                        if (t.data.length == 0) {
+                            var url = 'https://raw.githubusercontent.com/tienhungezs/language/main/en.1000.phrases.json';
+
+                            app21.prom('DOWNLOAD_URL', url).then(rs => {
+
+                                var contentType = rs.data.contentType.split(';')[0];
+                                var s = rs.data.text;
+
+                                try {
+                                    var arr = JSON.parse(s);
+                                    if (Array.isArray(arr)) {
+                                        t.data = arr;
+                                        update();
+                                    }
+                                } catch {
+
+                                }
+                                t.loading = false;
+
+                            }).catch(e => {
+
+                            })
+                        } else {
+                            data.loading = false;
+                        }
+
+                    })
+                }
+            },
+            getHtml(x) {
+               
+                return x.phrase;
+            },
+            setActive(x) {
+                
+                this.itemActive = x;
             },
             itemActive: null,
-            itemHeight: 62
+            itemHeight: 75
         },
 
     ],
@@ -238,11 +307,11 @@ var data = {
         {
 
             name: 'voice',
-            qrInput: true
+            //qrInput: true
         },
         {
             name: 'audio',
-            qrInput: true
+            //qrInput: true
         },
         {
 
