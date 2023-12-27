@@ -45,6 +45,8 @@ const pending = `
 <div class="h-[24px] rounded-lg w-full u1 bg-slate-200 animate-pulse"></div>
 `;
 
+const control = `rounded-lg py-1 px-2 border-[1px] h-[42px] flex items-center border-slate-200 w-full my-2`;
+
 document.body.innerHTML = `
 <div id="app" class="w-full h-full  overflow-auto">
 
@@ -72,9 +74,9 @@ document.body.innerHTML = `
          v-for="(m) in modulesActive()"
          v-on:scroll="scrollItem($event)">
         
-        <div v-bind:class="'w-full h-[' + (m.data.length * m.itemHeight) + 'px]'">
+        <div v-bind:class="'w-full h-[' + getScollHeight(m) + 'px]'">
             <div v-for="(x,i) in m.data" 
-                v-if=" scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh()"
+                v-if=" x.filterShow !== false && ( scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh())"
                 v-bind:class="'absolute p-3 pb-0 last:pb-3 w-full h-['+ m.itemHeight   +'px] top-[' + (i* m.itemHeight)+'px]'">
                 <div class="py-3 px-5  rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
                         v-on:click="m.setActive && m.setActive(x)"
@@ -139,6 +141,19 @@ document.body.innerHTML = `
         <div v-for="(m) in modulesActive()"
             class="w-full max-h-[calc(100%_-_48px)] min-h-[100px] overflow-auto">
             
+            <div v-for="(p) in m.filterProps" class="p-3 border-b-[1px] border-slate-200 last:border-0">
+                <div>{{p.name}}</div>
+                <div v-if="p.type == 'select'">
+                    <select class="${control}" v-model="p.value">
+                        <option value="">--Chọn--</option>
+                        <option v-for="(op) in p.options" v-bind:value="typeof op == 'string' ? op: op.value">{{typeof op == 'string' ? op: op.text}}</option>
+                    </select>
+                </div>
+                <div v-else="">
+                    <input type="text" class="${control}" v-model="p.value" />
+                </div>
+            </div>
+
         </div>
         <div class="h-[48px] border-t-[1px] border-slate-200 flex items-center justify-between px-3">
             <div class="${textAction}" v-on:click="filterPropsReset()">Reset</div>
@@ -315,6 +330,7 @@ var data = {
                     }
                 },
                 {
+                    name: 'type',
                     type: 'select',
                     value: '',
                     options: ['Common expressions', 'Greetings', 'Travel, directions', 'Numbers and money', 'Location', 'Phone/internet/mail', 'Time and dates', 'Accommodations', 'Dining', 'Making friends', 'Entertainment', 'Shopping', 'Communication difficulties', 'Emergency and health', 'Cultural expressions/terms', 'General questions', 'Work', 'Weather', 'Verbs', 'Miscellaneous'],
@@ -428,13 +444,38 @@ var data = {
     ],
     wordPropEdit: null,
     wordPropEditValue: null,
-    
+
     filterPropsShow: false,
-    filterPropsReset(){
-
+    filterPropsReset() {
+        this.modules.forEach(m => {
+            if (m.active && m.filterProps) {
+                m.filterProps.forEach(p => {
+                    p.value = '';
+                })
+            }
+        })
     },
-    filterPropsSet(){
+    filterPropsSet() {
+        this.modules.forEach(m => {
+            if (m.active && m.filterProps) {
 
+                var nShow = 0;
+                m.data.forEach(x => {
+                    delete x.filterShow;
+
+                    var pass = true;
+                    m.filterProps.forEach(ft => {
+                        pass = ft.onItem(x) ? pass : false;
+                    })
+                    Vue.set(x, 'filterShow', pass);
+                    if (pass) {
+
+                        nShow++;
+                    }
+
+                })
+            }
+        })
     },
     qrOpen(fn) {
         app21.prom('OPEN_QRCODE').then(rs => {
@@ -476,6 +517,15 @@ var data = {
                 m.store && m.store();
             }
         })
+    },
+    getScollHeight(m) {
+
+        var n = m.data.filter(x => {
+            return x.filterShow !== false;
+        }).length;
+        console.log('n', n);
+        return n * m.itemHeight;
+
     }
 
 };
