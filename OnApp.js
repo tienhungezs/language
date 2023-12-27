@@ -342,7 +342,17 @@ var data = {
                     data.moduleData('top1000phrases_en', (loading, _data) => {
                         any = !loading;
                         arr = _data.filter(ph => {
-                            return `${ph.phrase}`.indexOf(data.wordActive.w)>-1;
+
+                            var x= data.wordActive.w.toLowerCase();
+                            if(x.length<3){
+                                if(!ph.words){
+                                    ph.words = ph.phrase.toLowerCase().split(' ');
+
+                                }
+                                return ph.words.filter(x1=> x1== x).length
+                            }
+
+                            return `${ph.phrase}`.toLowerCase().indexOf(data.wordActive.w)>-1;
                         })
                     })
                 }
