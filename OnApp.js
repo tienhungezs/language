@@ -59,6 +59,12 @@ document.body.innerHTML = `
         </div>
         <div v-for="(m) in modulesActive()" 
              v-html="m.text" class="grow truncate h-full flex items-center "></div>
+        <div v-for="(m) in modulesActive()" 
+             v-if="m.filterProps && m.filterProps.length"
+             v-on:click=" filterPropsShow = !filterPropsShow"
+              class="w-[48px] truncate h-full flex items-center justify-center bg-slate-100">
+              FT[{{m.filterProps.filter(z=>z.value).length}}]
+        </div>
     </div>
 
     <!--module active-->
@@ -126,6 +132,20 @@ document.body.innerHTML = `
             </div>
         </div>
     </div>
+
+    <!--filterProps-->
+    <div v-if="filterPropsShow" class="${fixedFull} z-[9]" v-on:click="filterPropsShow= false"></div>
+    <div v-if="filterPropsShow" class="filterProps ${fixedRight} top-[48px] max-w-[80%] w-[300px] bg-white drop-shadow-2xl overflow-auto z-[10]">
+        <div v-for="(m) in modulesActive()"
+            class="w-full max-h-[calc(100%_-_48px)] min-h-[100px] overflow-auto">
+            
+        </div>
+        <div class="h-[48px] border-t-[1px] border-slate-200 flex items-center justify-between px-3">
+            <div class="${textAction}" v-on:click="filterPropsReset()">Reset</div>
+            <div class="${textAction}" v-on:click="filterPropsSet()">Set</div>
+    
+        </div>
+    </div>
 </div>
 `;
 
@@ -146,7 +166,9 @@ var data = {
             text: 'Top 3000 words',
             name: 'top3000word_en',
             loading: true,
-            data: [],
+            data: [
+                //{ w: ''}
+            ],
             storeKey: 'top3000word_en',
             onLoad() {
                 var t = this;
@@ -209,15 +231,24 @@ var data = {
                 this.itemActive = x;
             },
             itemActive: null,
-            itemHeight: 62
+            itemHeight: 62,
+            filterProps: [
+                {
+                    name: 'key',
+                    value: '',
+                    onItem(x) {
+                        return x.w.indexOf(this.value) > -1
+                    }
+                }
+            ]
 
         },
         {
-            text: 'Top 1000 english-phrases',
+            text: 'Top 1000 english-phrases(englishspeak.com)',
             name: 'top1000phrases_en',
             loading: true,
             data: [
-                
+                //{ phrase: ''}
             ],
             storeKey: 'top1000phrases_en',
             onLoad() {
@@ -274,7 +305,25 @@ var data = {
                 this.itemActive = x;
             },
             itemActive: null,
-            itemHeight: 75
+            itemHeight: 75,
+            filterProps: [
+                {
+                    name: 'key',
+                    value: '',
+                    onItem(x) {
+                        return x.phrase.indexOf(this.value) > -1
+                    }
+                },
+                {
+                    type: 'select',
+                    value: '',
+                    options: ['Common expressions', 'Greetings', 'Travel, directions', 'Numbers and money', 'Location', 'Phone/internet/mail', 'Time and dates', 'Accommodations', 'Dining', 'Making friends', 'Entertainment', 'Shopping', 'Communication difficulties', 'Emergency and health', 'Cultural expressions/terms', 'General questions', 'Work', 'Weather', 'Verbs', 'Miscellaneous'],
+                    onItem(x) {
+                        if (!this.value) return true;
+                        return x.category == this.value
+                    }
+                }
+            ]
         },
 
     ],
@@ -343,22 +392,22 @@ var data = {
                         any = !loading;
                         arr = _data.filter(ph => {
 
-                            var x= data.wordActive.w.toLowerCase();
-                            if(x.length<3){
-                                if(!ph.words){
+                            var x = data.wordActive.w.toLowerCase();
+                            if (x.length < 3) {
+                                if (!ph.words) {
                                     ph.words = ph.phrase.toLowerCase().split(' ');
 
                                 }
-                                return ph.words.filter(x1=> x1== x).length
+                                return ph.words.filter(x1 => x1 == x).length
                             }
 
-                            return `${ph.phrase}`.toLowerCase().indexOf(data.wordActive.w)>-1;
+                            return `${ph.phrase}`.toLowerCase().indexOf(data.wordActive.w) > -1;
                         })
                     })
                 }
 
 
-                
+
 
                 if (arr.length > 0) {
                     return arr.map(x => `<div class="p-1">${x.phrase}</div>`).join('')
@@ -379,6 +428,14 @@ var data = {
     ],
     wordPropEdit: null,
     wordPropEditValue: null,
+    
+    filterPropsShow: false,
+    filterPropsReset(){
+
+    },
+    filterPropsSet(){
+
+    },
     qrOpen(fn) {
         app21.prom('OPEN_QRCODE').then(rs => {
             var qrCode = rs.data;
