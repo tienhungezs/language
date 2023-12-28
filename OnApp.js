@@ -74,9 +74,9 @@ document.body.innerHTML = `
          v-for="(m) in modulesActive()"
          v-on:scroll="scrollItem($event)">
         
-        <div v-bind:class="'w-full h-[' + getScollHeight(m) + 'px]'">
-            <div v-for="(x,i) in m.data" 
-                v-if=" x.filterShow !== false && ( scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh())"
+        <div v-bind:class="'w-full h-[' + (m.scrollHeight || 0) + 'px]'">
+            <div v-for="(x,i) in viewData(m)" 
+                v-if="   scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh()"
                 v-bind:class="'absolute p-3 pb-0 last:pb-3 w-full h-['+ m.itemHeight   +'px] top-[' + (i* m.itemHeight)+'px]'">
                 <div class="py-3 px-5  rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
                         v-on:click="m.setActive && m.setActive(x)"
@@ -150,7 +150,7 @@ document.body.innerHTML = `
                     </select>
                 </div>
                 <div v-else="">
-                    <input type="text" class="${control}" v-model="p.value" />
+                    <input type="text" class="${control}" v-bind:placeholder="p.placeholder" v-model="p.value" />
                 </div>
             </div>
 
@@ -212,6 +212,7 @@ var data = {
                                     var arr = JSON.parse(s);
                                     if (Array.isArray(arr)) {
                                         t.data = arr;
+                                        t.scrollHeight = t.data.length * t.itemHeight;
                                         update();
                                     }
                                 } catch {
@@ -251,11 +252,21 @@ var data = {
                 {
                     name: 'key',
                     value: '',
+                    placeholder: 'Begin search, * contain...',
                     onItem(x) {
-                        return x.w.indexOf(this.value) > -1
+                        var k = this.value;
+                        if (!k) return true;
+                        k = k.toLowerCase();
+                        if (k.startsWith('*')) {
+                            k = k.substring(1);
+                            return x.w.indexOf(k) > -1
+                        }
+
+                        return x.w.toLowerCase().startsWith(k);
                     }
                 }
-            ]
+            ],
+            scrollHeight: 0
 
         },
         {
@@ -294,6 +305,7 @@ var data = {
                                     var arr = JSON.parse(s);
                                     if (Array.isArray(arr)) {
                                         t.data = arr;
+                                        t.scrollHeight = t.data.length * t.itemHeight;
                                         update();
                                     }
                                 } catch {
@@ -339,7 +351,8 @@ var data = {
                         return x.category == this.value
                     }
                 }
-            ]
+            ],
+            scrollHeight: 0
         },
 
     ],
@@ -474,8 +487,10 @@ var data = {
                     }
 
                 })
+                m.scrollHeight = nShow * m.itemHeight;
             }
         })
+        this.filterPropsShow = false;
     },
     qrOpen(fn) {
         app21.prom('OPEN_QRCODE').then(rs => {
@@ -519,13 +534,20 @@ var data = {
         })
     },
     getScollHeight(m) {
-
+        if(!m || !Array.isArray(m.data)) return 0;
         var n = m.data.filter(x => {
             return x.filterShow !== false;
         }).length;
-        console.log('n', n);
+        console.log('n', n, n * m.itemHeight);
         return n * m.itemHeight;
 
+    },
+    viewData(m) {
+        if(!m || !Array.isArray(m.data)) return [];
+        return m.data.filter(x => {
+            if(x.filterShow === undefined) return true;
+            return x.filterShow === true;
+        })
     }
 
 };
