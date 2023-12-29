@@ -227,6 +227,7 @@ function textStore(name, url) {
 
             app21.prom('DOWNLOAD_URL', url).then(rs => {
                 var s = rs.data.text;
+                console.log('textStore down', s);
                 try {
                     fn(s)
                 } catch {
