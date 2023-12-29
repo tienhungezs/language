@@ -171,6 +171,70 @@ document.body.innerHTML = `
 `;
 
 
+const _console = window.console;
+
+var console = {
+    $el: null,
+    n: 3,
+    show(arr) {
+        var t = this.$el;
+        if(!t){
+            var x = document.createElement('div');
+            document.body.appendChild(x);
+            x.className = `fixed bottom-0 z-[99999] left-0 right-0 bg-black text-white text-[11px] max-h-[100px] overflow-auto`;
+            this.$el = x;
+            t= x;
+        }
+
+        var el= document.createElement('div');
+        el.className ='my-5 p-3 border-b-[1px] border-sale-200';
+        t.prepend(el);
+        for(var i=0;i< arr.length;i++){
+            var div= document.createElement('div');
+            div.innerHTML = JSON.stringify(arr[i]);
+            div.className='truncate';
+            el.appendChild(div);
+        }
+        while(t.children.length> this.n)
+        {
+            t.children[t.children.length-1].remove()
+        }
+
+
+    },
+    log() {
+        this.show(arguments);
+        _console.log.apply(null, arguments);
+    },
+    error() {
+        this.show(arguments);
+        _console.error.apply(null, arguments);
+    },
+    clear() {
+
+        _console.clear.apply(null, arguments);
+    },
+    info() {
+        this.show(arguments);
+        _console.info.apply(null, arguments);
+    }
+
+};
+
+window.console= console;
+
+// for (var k in _console) {
+//     if (typeof _console[k] === 'function') {
+//         console.log('fn', k);
+//         console[k] = function () {
+//             _console[k].apply(null, arguments);
+//         }
+//     }
+// }
+
+
+
+
 function PlaySound(t) {
     var e = document.createElement("audio");
     e.setAttribute("src", t),
@@ -224,36 +288,36 @@ function textStore(name, url) {
 
 
 
-    
+
     return new Promise((resolve, reject) => {
 
 
-        fetch(url).then(x=>x.text()).then(txt=>{
+        fetch(url).then(x => x.text()).then(txt => {
             resolve(txt);
         })
 
-        
+
     });
 }
 
-function parseJSON(s){
+function parseJSON(s) {
 
-    var  a=0;
-    var b=s.length-1;
-    while(a< s.length){
-        if(s[a]=='[' || s[a]=='}'){
+    var a = 0;
+    var b = s.length - 1;
+    while (a < s.length) {
+        if (s[a] == '[' || s[a] == '}') {
             break;
         }
         a++;
     }
-    while(b>0){
-        if(s[b]=='[' || s[b]=='}'){
+    while (b > 0) {
+        if (s[b] == '[' || s[b] == '}') {
             break;
         }
         b--;
     }
-    if(a>-1 && b>-1){
-        var s1=  s.substring(a,b);
+    if (a > -1 && b > -1) {
+        var s1 = s.substring(a, b);
         return JSON.parse(s1);
     }
     return JSON.parse(s);
@@ -322,7 +386,7 @@ var data = {
                     name: this.storeKey,
                     content: JSON.stringify(this.data)
                 }).then(rs => {
-                    console.log('Da_luu')
+                    //console.log('Da_luu')
                 })
             },
             getHtml(x) {
@@ -365,7 +429,7 @@ var data = {
             storeKey: 'top1000phrases_en',
             onLoad() {
                 var t = this;
-                console.log('load', t.storeKey);
+                //console.log('load', t.storeKey);
                 if (t.loading) {
                     app21.prom('TEXT', {
                         name: t.storeKey
@@ -607,7 +671,7 @@ var data = {
         var b = this.scrollY2 + window.innerHeight;
         return m.data.filter((x, i) => {
             if (a <= i * h && i * h <= b) {
-                console.log(i);
+                //console.log(i);
                 return true;
             };
             return false;
@@ -628,7 +692,7 @@ var data = {
         var n = m.data.filter(x => {
             return x.filterShow !== false;
         }).length;
-        console.log('n', n, n * m.itemHeight);
+        //console.log('n', n, n * m.itemHeight);
         return n * m.itemHeight;
 
     },
@@ -660,9 +724,11 @@ var app = new Vue({
                 data.moduleLoad('top1000phrases_en');
                 var x = `en.3000.vi.${w.w[0]}.json`;
                 data.wordMeaning = true;
+                console.log('vi');
                 textStore(x, `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.vi/${x}`)
                     .then(s => {
                         try {
+                            console.log('vi', s)
                             var arr = JSON.parse(s);
                             arr.every(z => {
                                 if (z.w == w.w) {
@@ -672,7 +738,7 @@ var app = new Vue({
                                 }
                                 return true;
                             })
-                        } catch(e) {
+                        } catch (e) {
                             console.log(e);
                         }
                         data.wordMeaning = false;
