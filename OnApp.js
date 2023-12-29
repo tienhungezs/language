@@ -47,6 +47,9 @@ const pending = `
 
 const control = `rounded-lg py-1 px-2 border-[1px] h-[42px] flex items-center border-slate-200 w-full my-2`;
 
+
+
+
 document.body.innerHTML = `
 <div id="app" class="w-full h-full  overflow-auto">
 
@@ -79,9 +82,9 @@ document.body.innerHTML = `
                 v-if="   scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh()"
                 v-bind:class="'absolute p-3 pb-0 last:pb-3 w-full h-['+ m.itemHeight   +'px] top-[' + (i* m.itemHeight)+'px]'">
                 <div class="py-3 px-5  rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
-                        v-on:click="m.setActive && m.setActive(x)"
+                       
                         v-bind:data-active="x == m.itemActive">
-                    <div v-html="m.getHtml ? m.getHtml(x): ''"></div>
+                    <span  class="inline-block min-w-[75px] active:bg-yellow-200" v-on:click="m.setActive && m.setActive(x)" v-html="m.getHtml ? m.getHtml(x): ''"></span>
                 </div>
             </div>
         </div>
@@ -100,6 +103,7 @@ document.body.innerHTML = `
     <!-- word detail -->
     <div v-if="wordActive">
         <div class="${fixedRight} w-[80%] bg-white drop-shadow-2xl overflow-auto" v-for="w in [wordActive]">
+            <div class="bg-slate-200 h-[6px] rounded-lg animate-pulse absolute left-3 right-3 top-[10px]" v-if="wordMeaning"></div>
             <div class="${rowLg} data-[head=true]:bg-slate-100 
                         data-[head=true]:text-blank data-[head=true]:font-bold data-[head=true]:border-slate-200 data-[head=true]:border-b-[2px]
                         group"
@@ -107,8 +111,8 @@ document.body.innerHTML = `
                  v-bind:data-head="p.head" >
                 <div class="p-5 grow flex flex-col" v-on:click="p.onClick && p.onClick()">
                     <div v-if="!p.head" class="${rowLg_lbBlock} text-[12px]">{{p.text || p.name}} {{p.textInput ? '[_]':''}}</div>
-                    <div v-bind:data-head="p.head"  class="data-[head=true]:text-4xl flex break-all" v-html="p.getValue ? p.getValue(w): w[p.name]"></div>
-                    <div v-if="p.render" class="w-full mt-3 max-h-[30vh] overflow-auto" v-html="p.render()"></div>
+                    <div v-bind:data-head="p.head" v-if="!p.render"  class="data-[head=true]:text-4xl flex break-all" v-html="p.getValue ? p.getValue(w): w[p.name]"></div>
+                    <div v-else="p.render" class="w-full mt-3 max-h-[30vh] overflow-auto" v-html="p.render()"></div>
                 </div>
                 
                 
@@ -141,6 +145,8 @@ document.body.innerHTML = `
         <div v-for="(m) in modulesActive()"
             class="w-full max-h-[calc(100%_-_48px)] min-h-[100px] overflow-auto">
             
+            
+
             <div v-for="(p) in m.filterProps" class="p-3 border-b-[1px] border-slate-200 last:border-0">
                 <div>{{p.name}}</div>
                 <div v-if="p.type == 'select'">
@@ -173,6 +179,93 @@ function PlaySound(t) {
     e.play();
 
 }
+
+
+function textSubsToHtml(x, opt, deep) {
+    var s = '';
+    if (Array.isArray(x)) {
+        s = '<ul class="pl-5 my-3">';
+        var d = deep || 0;
+
+        if (opt) {
+            var cls = opt && opt.color ? opt.color : '';
+            var step = opt.step || 0;
+            if (cls) {
+                var arr = cls.split('-');
+                var n = arr[arr.length - 1];
+                n = parseInt(n);
+                if (n) {
+                    n = n - d * step;
+                    n = Math.max(100, n);
+                    arr[arr.length - 1] = n;
+                    cls = arr.join('-');
+                }
+
+            }
+        }
+
+
+
+
+        x.forEach(z => {
+            if (z.text) {
+                var li = `<li><div class="${cls}">${z.text}</div>`;
+                li += textSubsToHtml(z.subs, opt, d + 1);
+                li += '</li>';
+                s += li;
+            }
+        });
+        s += '</ul>';
+    }
+    return s;
+}
+
+function textStore(name, url) {
+    return new Promise((resolve, reject) => {
+
+        function down(fn) {
+
+            app21.prom('DOWNLOAD_URL', url).then(rs => {
+                var s = rs.data.text;
+                try {
+                    fn(s)
+                } catch {
+                    fn(null);
+                }
+            }).catch(e => {
+
+            })
+        }
+
+        function store(s) {
+            app21.prom('TEXT', {
+                name: name,
+                content: s
+            }).then(rs => {
+
+            })
+        }
+
+        app21.prom('TEXT', {
+            name: name
+        }).catch(e => {
+            down(s => {
+                store(s);
+                resolve(s);
+            })
+        }).then(rs => {
+            if (!rs || !rs.data) {
+                down(s => {
+                    store(s);
+                    resolve(s);
+                })
+            } else {
+                resolve(rs.data);
+            }
+        })
+    });
+}
+
 
 var data = {
 
@@ -404,10 +497,14 @@ var data = {
         {
 
             name: 'meaning',
+            render() {
+                var x = data.wordActive.meaning;
+                var html = textSubsToHtml(x, {
+                    color: 'text-gray-900',
+                    step: 200
+                });
 
-            textInput: true,
-            onClick() {
-                data.wordPropEdit = this;
+                return html;
             }
         },
         {
@@ -457,7 +554,7 @@ var data = {
     ],
     wordPropEdit: null,
     wordPropEditValue: null,
-
+    wordMeaning: true,
     filterPropsShow: false,
     filterPropsReset() {
         this.modules.forEach(m => {
@@ -534,7 +631,7 @@ var data = {
         })
     },
     getScollHeight(m) {
-        if(!m || !Array.isArray(m.data)) return 0;
+        if (!m || !Array.isArray(m.data)) return 0;
         var n = m.data.filter(x => {
             return x.filterShow !== false;
         }).length;
@@ -543,9 +640,9 @@ var data = {
 
     },
     viewData(m) {
-        if(!m || !Array.isArray(m.data)) return [];
+        if (!m || !Array.isArray(m.data)) return [];
         return m.data.filter(x => {
-            if(x.filterShow === undefined) return true;
+            if (x.filterShow === undefined) return true;
             return x.filterShow === true;
         })
     }
@@ -568,6 +665,25 @@ var app = new Vue({
         wordActive(w) {
             if (w) {
                 data.moduleLoad('top1000phrases_en');
+                var x = `en.3000.vi.${w.w[0]}.json`;
+                data.wordMeaning = true;
+                textStore(x, `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.vi/${x}`)
+                    .then(s => {
+                        try {
+                            var arr = JSON.parse(s);
+                            arr.every(z => {
+                                if (z.w == w.w) {
+                                    Vue.set(w, 'voice', z.voice);
+                                    Vue.set(w, 'meaning', z.vi);
+                                    return false;
+                                }
+                                return true;
+                            })
+                        } catch {
+
+                        }
+                        data.wordMeaning = false;
+                    })
             }
         }
     }
