@@ -268,6 +268,29 @@ function textStore(name, url) {
     });
 }
 
+function parseJSON(s){
+
+    var  a=0;
+    var b=s.length-1;
+    while(a< s.length){
+        if(s[a]=='[' || s[a]=='}'){
+            break;
+        }
+        a++;
+    }
+    while(b>0){
+        if(s[b]=='[' || s[b]=='}'){
+            break;
+        }
+        b--;
+    }
+    if(a>-1 && b>-1){
+        var s1=  s.substring(a,b);
+        return JSON.parse(s1);
+    }
+    return JSON.parse(s);
+}
+
 
 var data = {
 
@@ -672,7 +695,7 @@ var app = new Vue({
                 textStore(x, `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.vi/${x}`)
                     .then(s => {
                         try {
-                            var arr = JSON.parse(s);
+                            var arr = parseJSON(s);
                             arr.every(z => {
                                 if (z.w == w.w) {
                                     Vue.set(w, 'voice', z.voice);
