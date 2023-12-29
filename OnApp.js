@@ -221,6 +221,7 @@ function textSubsToHtml(x, opt, deep) {
 }
 
 function textStore(name, url) {
+    console.log('textStore', name);
     return new Promise((resolve, reject) => {
 
         function down(fn) {
@@ -680,8 +681,8 @@ var app = new Vue({
                                 }
                                 return true;
                             })
-                        } catch {
-
+                        } catch(e) {
+                            console.log(e);
                         }
                         data.wordMeaning = false;
                     })
