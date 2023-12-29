@@ -170,7 +170,7 @@ document.body.innerHTML = `
 </div>
 `;
 
-
+/*
 const _console = window.console;
 
 var console = {
@@ -220,6 +220,8 @@ var console = {
     }
 
 };
+
+//*/
 
 window.console= console;
 
