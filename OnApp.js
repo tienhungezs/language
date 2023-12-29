@@ -221,50 +221,18 @@ function textSubsToHtml(x, opt, deep) {
 }
 
 function textStore(name, url) {
-    console.log('textStore', name);
+
+
+
+    
     return new Promise((resolve, reject) => {
 
-        function down(fn) {
 
-            app21.prom('DOWNLOAD_URL', url).then(rs => {
-                var s = rs.data.text;
-                console.log('textStore down', s);
-                try {
-                    fn(s)
-                } catch {
-                    fn(null);
-                }
-            }).catch(e => {
-
-            })
-        }
-
-        function store(s) {
-            app21.prom('TEXT', {
-                name: name,
-                content: s
-            }).then(rs => {
-
-            })
-        }
-
-        app21.prom('TEXT', {
-            name: name
-        }).catch(e => {
-            down(s => {
-                store(s);
-                resolve(s);
-            })
-        }).then(rs => {
-            if (!rs || !rs.data) {
-                down(s => {
-                    store(s);
-                    resolve(s);
-                })
-            } else {
-                resolve(rs.data);
-            }
+        fetch(url).then(x=>x.text()).then(txt=>{
+            resolve(txt);
         })
+
+        
     });
 }
 
@@ -695,7 +663,7 @@ var app = new Vue({
                 textStore(x, `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.vi/${x}`)
                     .then(s => {
                         try {
-                            var arr = parseJSON(s);
+                            var arr = JSON.parse(s);
                             arr.every(z => {
                                 if (z.w == w.w) {
                                     Vue.set(w, 'voice', z.voice);
