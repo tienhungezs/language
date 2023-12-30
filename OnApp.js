@@ -192,8 +192,8 @@ document.body.innerHTML = `
             <div v-if="phrase.edit" class="h-full">
                 <textarea class="h-full p-3 rounded-lg w-full border-slate-100 bg-gray-300" v-model="phraseText"></textarea>
             </div>
-            <div v-else class="h-full overflow-auto">
-                <span v-for="word in phraseWords()" class="mr-3 last:mr-0 hover:underline active:text-blue-500" 
+            <div v-else class="h-full overflow-auto w-full break-words">
+                <span v-for="word in phraseWords()" class="mr-3 truncate last:mr-0 hover:underline active:text-blue-500" 
                       v-on:click="phraseViewWord(word)" 
                       v-html="word"></span>
             </div>
@@ -822,7 +822,7 @@ var data = {
     phraseShow: true,
     phraseText: 'hi.',
     phrase: {
-        edit: true
+        edit: false
     },
     phraseSpecialChar(c) {
         return '~!@#$%^&*()_-=+<,>.:;""{[}]|\\'.indexOf(c) > -1;
