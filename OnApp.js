@@ -223,7 +223,7 @@ var console = {
 
 //*/
 
-window.console= console;
+window.console = console;
 
 // for (var k in _console) {
 //     if (typeof _console[k] === 'function') {
@@ -325,6 +325,123 @@ function parseJSON(s) {
     return JSON.parse(s);
 }
 
+
+function isElement(obj) {
+    try {
+        //Using W3 DOM2 (works for FF, Opera and Chrome)
+        return obj instanceof HTMLElement;
+    }
+    catch (e) {
+        //Browsers not supporting W3 DOM2 don't have HTMLElement and
+        //an exception is thrown and we end up here. Testing some
+        //properties that all elements have (works on IE7)
+        return (typeof obj === "object") &&
+            (obj.nodeType === 1) && (typeof obj.style === "object") &&
+            (typeof obj.ownerDocument === "object");
+    }
+}
+
+function vdicTranslate(wordText) {
+
+
+    function ulToSubText(ul) {
+        var arr = [];
+        if (isElement(ul)) {
+
+            ul.querySelectorAll('li').forEach(li => {
+                var x = {
+                    text: '',
+                    subs: []
+                };
+                var cap = true;
+                var segs = [];
+                for (var i = 0; i < li.children.length; i++) {
+                    var ch = li.children[i];
+
+                    if (cap) {
+                        segs.push(ch.innerText);
+                    }
+
+                    if (ch.tagName.toUpperCase() == 'UL') {
+                        cap = false;
+                        var subs = ulToSubText(ch);
+                        if (subs && subs.length) {
+
+                            x.subs = x.subs.concat(subs);
+                        }
+                    }
+                }
+                x.text = segs.join(' ');
+                if (x.subs.length == 0) delete x.subs;
+                if (x.text) {
+                    arr.push(x);
+                }
+
+
+            })
+        }
+        return arr;;
+    }
+
+    return new Promise((resolve, reject) => {
+        var q = `https://vdict.com/${wordText},1,0,0.html`;
+
+
+        fetch(`https://cser.vn/acaorigin?q=${q}`, {
+
+        }).then(x => {
+
+            return x.text()
+        }).then(txt => {
+            var html = txt.replace('<html', '<div')
+                .replace('<body', '<div')
+                .replace('</html>', '</div>')
+                .replace('</html', '</div>');
+            var dom = document.createElement('div');
+            dom.style.display = 'none';;
+            dom.innerHTML = html;
+            var pronounce = dom.querySelector('.pronounce');
+            var z = {
+                voice: pronounce ? pronounce.innerText : null,
+                meaning: []
+            };
+
+            dom.querySelectorAll('.phanloai').forEach(pl => {
+                var key = pl.innerText;
+
+                var x = {
+                    text: key,
+                    subs: []
+                };
+
+                var el = pl.nextSibling;
+                while (true) {
+                    if (!el) break;
+                    if (el.classList && el.classList.contains('phanloai')) break;
+                    if (el.tagName && el.tagName.toUpperCase() == 'UL') {
+                        var subs = ulToSubText(el);
+                        if (subs && subs.length) {
+                            x.subs = x.subs.concat(subs);
+
+                        }
+                        
+                    }
+                    el = el.nextSibling;
+                }
+
+                if (x.subs.length == 0) delete x.subs;
+                
+                z.meaning.push(x);
+            })
+            dom.remove();
+            resolve(z);
+
+        }).catch(e => {
+
+            reject(e);
+        })
+    })
+}
 
 var data = {
 
@@ -547,11 +664,7 @@ var data = {
             }
         },
         {
-
             name: 'voice'
-        },
-        {
-            name: 'audio'
         },
         {
 
@@ -726,25 +839,14 @@ var app = new Vue({
                 data.moduleLoad('top1000phrases_en');
                 var x = `en.3000.vi.${w.w[0]}.json`;
                 data.wordMeaning = true;
-                console.log('vi');
-                textStore(x, `https://raw.githubusercontent.com/tienhungezs/language/main/en.3000.vi/${x}`)
-                    .then(s => {
-                        try {
-                            console.log('vi', s)
-                            var arr = JSON.parse(s);
-                            arr.every(z => {
-                                if (z.w == w.w) {
-                                    Vue.set(w, 'voice', z.voice);
-                                    Vue.set(w, 'meaning', z.vi);
-                                    return false;
-                                }
-                                return true;
-                            })
-                        } catch (e) {
-                            console.log(e);
-                        }
-                        data.wordMeaning = false;
-                    })
+                
+                vdicTranslate(w.w).then(rs=>{
+                    Vue.set(w, 'voice', rs.voice);
+                    Vue.set(w, 'meaning', rs.meaning);
+                    data.wordMeaning = false;
+                })
+
+                
             }
         }
     }
