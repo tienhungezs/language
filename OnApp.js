@@ -481,7 +481,7 @@ var data = {
                     })
                 }
             },
-            active: true,
+            active: false,
             store() {
                 app21.prom('TEXT', {
                     name: this.storeKey,
