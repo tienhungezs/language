@@ -176,8 +176,8 @@ document.body.innerHTML = `
         <div class="h-[32px] border-slate-100 border-b-[1px] flex px-3">
             <div v-if="!phrase.edit" v-on:click="phraseQrCode()" class="h-[32px] flex items-center px-3 ${textAction}">[QR]</div>
             <div v-if="!phrase.edit" v-on:click="phrase.edit = true" class="h-[32px] flex items-center px-3 ${textAction}">[Edit]</div>
-            <div v-if="phrase.edit" v-on:click="phrase.edit = false" class="h-[32px] flex items-center px-3 ${textAction}">[Đóng Edit]</div>
-            <div v-on:click="phraseShow = false" class="h-[32px] flex items-center px-3 ${textAction} ml-[auto]">[Đóng]</div>
+            <div v-if="phrase.edit" v-on:click="phrase.edit = false" class="h-[32px] flex items-center px-3 ${textAction}">[Close Edit]</div>
+            <div v-on:click="phraseShow = false" class="h-[32px] flex items-center px-3 ${textAction} ml-[auto]">[Close]</div>
         </div>
 
         <div class="p-3 h-[calc(100%_-_32px)]">
@@ -806,7 +806,7 @@ var data = {
     phraseShow: true,
     phraseText: 'Everything is ready.',
     phrase: {
-        edit: true
+        edit: false
     },
     phraseSpecialChar(c) {
         return '~!@#$%^&*()_-=+<,>.:;""{[}]|\\'.indexOf(c) > -1;
