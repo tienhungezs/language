@@ -81,10 +81,13 @@ document.body.innerHTML = `
             <div v-for="(x,i) in viewData(m)" 
                 v-if="   scrollY1 - wh() <= i* m.itemHeight && i* m.itemHeight <= scrollY2 + wh()"
                 v-bind:class="'absolute p-3 pb-0 last:pb-3 w-full h-['+ m.itemHeight   +'px] top-[' + (i* m.itemHeight)+'px]'">
-                <div class="py-3 px-5  rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
+                <div class="py-3 px-5 w-full flex rounded-lg bg-white data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:drop-shadow" 
                        
                         v-bind:data-active="x == m.itemActive">
                     <span  class="inline-block min-w-[75px] active:bg-yellow-200" v-on:click="m.setActive && m.setActive(x)" v-html="m.getHtml ? m.getHtml(x): ''"></span>
+                    <span v-if="m.dataAction" class="ml-[auto] active:text-blue-500" v-on:click="m.dataAction(x)">
+                        ...
+                    </span>
                 </div>
             </div>
         </div>
@@ -101,7 +104,7 @@ document.body.innerHTML = `
     </div>
 
     <!-- word detail -->
-    <div v-if="wordActive">
+    <div v-if="wordActive" class="z-[10] relative">
         <div class="${fixedRight} w-[80%] bg-white drop-shadow-2xl overflow-auto" v-for="w in [wordActive]">
             <div class="bg-slate-200 h-[6px] rounded-lg animate-pulse absolute left-3 right-3 top-[10px]" v-if="wordMeaning"></div>
             <div class="${rowLg} data-[head=true]:bg-slate-100 
@@ -167,72 +170,34 @@ document.body.innerHTML = `
     
         </div>
     </div>
+
+    <!--phrase-->
+    <div v-if="phraseShow" class="phrase ${fixedFull} !top-[48px] bg-white z-[1]">
+        <div class="h-[32px] border-slate-100 border-b-[1px] flex px-3">
+            <div v-if="!phrase.edit" v-on:click="phraseQrCode()" class="h-[32px] flex items-center px-3 ${textAction}">[QR]</div>
+            <div v-if="!phrase.edit" v-on:click="phrase.edit = true" class="h-[32px] flex items-center px-3 ${textAction}">[Edit]</div>
+            <div v-if="phrase.edit" v-on:click="phrase.edit = false" class="h-[32px] flex items-center px-3 ${textAction}">[Đóng Edit]</div>
+            <div v-on:click="phraseShow = false" class="h-[32px] flex items-center px-3 ${textAction} ml-[auto]">[Đóng]</div>
+        </div>
+
+        <div class="p-3 h-[calc(100%_-_32px)]">
+            <div v-if="phrase.edit" class="h-full">
+                <textarea class="h-full p-3 rounded-lg w-full border-slate-100 bg-gray-100" v-model="phraseText"></textarea>
+            </div>
+            <div v-else class="h-full overflow-auto">
+                <span v-for="word in phraseWords()" class="mr-3 last:mr-0 hover:underline active:text-blue-500" 
+                      v-on:click="phraseViewWord(word)" 
+                      v-html="word"></span>
+            </div>
+        </div>
+
+    </div>
 </div>
 `;
 
-/*
-const _console = window.console;
 
-var console = {
-    $el: null,
-    n: 3,
-    show(arr) {
-        var t = this.$el;
-        if(!t){
-            var x = document.createElement('div');
-            document.body.appendChild(x);
-            x.className = `fixed bottom-0 z-[99999] left-0 right-0 bg-black text-white text-[11px] max-h-[100px] overflow-auto`;
-            this.$el = x;
-            t= x;
-        }
-
-        var el= document.createElement('div');
-        el.className ='my-5 p-3 border-b-[1px] border-sale-200';
-        t.prepend(el);
-        for(var i=0;i< arr.length;i++){
-            var div= document.createElement('div');
-            div.innerHTML = JSON.stringify(arr[i]);
-            div.className='truncate';
-            el.appendChild(div);
-        }
-        while(t.children.length> this.n)
-        {
-            t.children[t.children.length-1].remove()
-        }
-
-
-    },
-    log() {
-        this.show(arguments);
-        _console.log.apply(null, arguments);
-    },
-    error() {
-        this.show(arguments);
-        _console.error.apply(null, arguments);
-    },
-    clear() {
-
-        _console.clear.apply(null, arguments);
-    },
-    info() {
-        this.show(arguments);
-        _console.info.apply(null, arguments);
-    }
-
-};
-
-//*/
 
 window.console = console;
-
-// for (var k in _console) {
-//     if (typeof _console[k] === 'function') {
-//         console.log('fn', k);
-//         console[k] = function () {
-//             _console[k].apply(null, arguments);
-//         }
-//     }
-// }
 
 
 
@@ -396,7 +361,9 @@ function vdicTranslate(wordText) {
             var html = txt.replace('<html', '<div')
                 .replace('<body', '<div')
                 .replace('</html>', '</div>')
-                .replace('</html', '</div>');
+                .replace('</html', '</div>')
+                .replace('<img', '<div')
+                .replace('<link', '<div');
             var dom = document.createElement('div');
             dom.style.display = 'none';;
             dom.innerHTML = html;
@@ -424,13 +391,13 @@ function vdicTranslate(wordText) {
                             x.subs = x.subs.concat(subs);
 
                         }
-                        
+
                     }
                     el = el.nextSibling;
                 }
 
                 if (x.subs.length == 0) delete x.subs;
-                
+
                 z.meaning.push(x);
             })
             dom.remove();
@@ -441,6 +408,21 @@ function vdicTranslate(wordText) {
             reject(e);
         })
     })
+}
+
+function QrCode() {
+
+    return new Promise((resolve, rj) => {
+        app21.prom('OPEN_QRCODE').then(rs => {
+            var qrCode = rs.data;
+            resolve(qrCode);
+
+        }).catch(e => {
+            resolve(null);
+        })
+    })
+
+
 }
 
 var data = {
@@ -493,7 +475,7 @@ var data = {
 
                             })
                         } else {
-                            data.loading = false;
+                            t.loading = false;
                         }
 
                     })
@@ -545,6 +527,10 @@ var data = {
             data: [
                 //{ phrase: ''}
             ],
+            dataAction(x) {
+                data.phraseText = x.phrase;
+                data.phraseShow = true;
+            },
             storeKey: 'top1000phrases_en',
             onLoad() {
                 var t = this;
@@ -586,7 +572,7 @@ var data = {
 
                             })
                         } else {
-                            data.loading = false;
+                            t.loading = false;
                         }
 
                     })
@@ -622,8 +608,7 @@ var data = {
                 }
             ],
             scrollHeight: 0
-        },
-
+        }
     ],
     modulesActive(ma) {
         if (ma) {
@@ -817,6 +802,52 @@ var data = {
             if (x.filterShow === undefined) return true;
             return x.filterShow === true;
         })
+    },
+    phraseShow: true,
+    phraseText: 'Everything is ready.',
+    phrase: {
+        edit: true
+    },
+    phraseSpecialChar(c) {
+        return '~!@#$%^&*()_-=+<,>.:;""{[}]|\\'.indexOf(c) > -1;
+    },
+    phraseWords() {
+        var arr = [];
+        var t = this;
+        var i = 0;
+        var s = this.phraseText;
+        var cap = '';
+        while (i < s.length) {
+            var c = s[i];
+            if (c == ' ') {
+                if (cap) arr.push(cap);
+                cap = '';
+            } else if (t.phraseSpecialChar(c)) {
+                if (cap) arr.push(cap);
+                cap = '';
+                arr.push(c);
+            } else {
+                cap += c;
+            }
+            i++;
+        }
+        if (cap) arr.push(cap);
+
+        return arr;
+
+    },
+    phraseViewWord(wordText) {
+
+        if (this.phraseSpecialChar(wordText)) return;
+
+        this.wordActive = {
+            w: wordText
+        }
+    },
+    phraseQrCode() {
+        QrCode().then(txt => {
+            data.phraseText = txt || '';
+        })
     }
 
 };
@@ -836,17 +867,23 @@ var app = new Vue({
     watch: {
         wordActive(w) {
             if (w) {
+
                 data.moduleLoad('top1000phrases_en');
                 var x = `en.3000.vi.${w.w[0]}.json`;
                 data.wordMeaning = true;
-                
-                vdicTranslate(w.w).then(rs=>{
+
+                vdicTranslate(w.w).then(rs => {
                     Vue.set(w, 'voice', rs.voice);
                     Vue.set(w, 'meaning', rs.meaning);
                     data.wordMeaning = false;
                 })
 
-                
+
+            }
+        },
+        phraseShow(v) {
+            if (v) {
+                data.wordActive = null;
             }
         }
     }
