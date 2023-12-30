@@ -101,6 +101,14 @@ document.body.innerHTML = `
             class="py-5 px-[48px] truncate border-b-[1px] border-slate-100 last:border-0 cursor-default"
             v-html="m.text">
         </div>
+
+        <!--menuItems-->
+        <div v-for="mn in menuItems"
+             v-on:click="mn.click(); menuShow= false"
+             class="py-5 px-[48px] truncate border-b-[1px] border-slate-100 last:border-0 cursor-default"
+             v-html="mn.text">
+        </div>
+
     </div>
 
     <!-- word detail -->
@@ -608,6 +616,14 @@ var data = {
                 }
             ],
             scrollHeight: 0
+        }
+    ],
+    menuItems: [
+        {
+            text: 'Input phrase...',
+            click(){
+                data.phraseShow = true;
+            }
         }
     ],
     modulesActive(ma) {
