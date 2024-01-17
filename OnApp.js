@@ -621,7 +621,7 @@ var data = {
     menuItems: [
         {
             text: 'Input phrase...',
-            click(){
+            click() {
                 data.phraseShow = true;
             }
         }
@@ -878,7 +878,9 @@ var app = new Vue({
             if (m.active) {
                 m.onLoad();
             }
-        })
+        });
+
+        
     },
     watch: {
         wordActive(w) {
